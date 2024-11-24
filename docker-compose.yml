@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   zabbix-all-in-one:
-    image: zabbix/zabbix-appliance:alpine-6.4-latest
+    image: zabbix/zabbix-appliance
     container_name: zabbix-all-in-one
     ports:
       - "8080:80"       # Interfície web
