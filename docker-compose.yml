@@ -1,34 +1,36 @@
+version: '3.7'
+
 services:
   zabbix-server:
-    image: ${ZABBIX_SERVER_IMAGE:-zabbix/zabbix-server-pgsql:ubuntu-7.0-latest}
-    container_name: server
+    image: zabbix/zabbix-server-pgsql:ubuntu-7.0-latest
+    container_name: zabbix-server
     restart: unless-stopped
     ports:
-      - "10051:10051"
+      - "10051:10051"  # Port del servidor Zabbix
     environment:
       DB_SERVER_HOST: postgres
       DB_SERVER_PORT: 5432
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: zabbix_password
+      POSTGRES_DB: zabbix
     depends_on:
       - postgres
     networks:
       - network-zabbix
 
   zabbix-frontend:
-    image: ${ZABBIX_FRONTEND_IMAGE:-zabbix/zabbix-web-nginx-pgsql:ubuntu-7.0-latest}
+    image: zabbix/zabbix-web-nginx-pgsql:ubuntu-7.0-latest
+    container_name: zabbix-frontend
     restart: unless-stopped
-    container_name: frontend
     ports:
-      - "8080:8080"
-      - "8443:8443"
+      - "8080:8080"  # Accés web HTTP
+      - "8443:8443"  # Accés web HTTPS
     environment:
       DB_SERVER_HOST: postgres
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-      PHP_TZ: ${TZ}
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: zabbix_password
+      POSTGRES_DB: zabbix
+      PHP_TZ: Europe/Barcelona
       ZBX_SERVER_HOST: zabbix-server
       ZBX_SERVER_PORT: 10051
     depends_on:
@@ -37,14 +39,14 @@ services:
       - network-zabbix
 
   zabbix-agent:
-    image:  ${ZABBIX_AGENT_IMAGE:-zabbix/zabbix-agent:ubuntu-7.0-latest}
-    container_name: agent
+    image: zabbix/zabbix-agent:ubuntu-7.0-latest
+    container_name: zabbix-agent
     restart: unless-stopped
     ports:
-      - "10050:10050"
+      - "10050:10050"  # Port de l'agent
     environment:
-      ZBX_ACTIVE_ALLOW: false
-      TZ: ${TZ}
+      ZBX_ACTIVE_ALLOW: "false"  # Canviat a string
+      TZ: Europe/Barcelona
       ZBX_SERVER_HOST: zabbix-server
       ZBX_SERVER_PORT: 10051
       ZBX_HOSTNAME: zabbix-agent
@@ -55,32 +57,32 @@ services:
       - network-zabbix
 
   postgres:
-    image: ${POSTGRES_IMAGE:-postgres:latest}
+    image: postgres:latest
     container_name: postgres
     restart: unless-stopped
     ports:
-      - "5432:5432"
+      - "5432:5432"  # Port de la base de dades
     volumes:
       - postgres:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: zabbix_password
+      POSTGRES_DB: zabbix
       PG_DATA: /var/lib/postgresql/data/pgdata
     networks:
       - network-zabbix
 
   grafana:
-    image: ${GRAFANA_IMAGE:-grafana/grafana}
+    image: grafana/grafana
     container_name: grafana
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "3000:3000"  # Accés a Grafana
     environment:
-      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_SECRET:-12345}
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin_password
       GF_INSTALL_PLUGINS: alexanderzobnin-zabbix-app
-      TZ: ${TZ}
+      TZ: Europe/Barcelona
     user: "472"
     volumes:
       - grafana:/var/lib/grafana
